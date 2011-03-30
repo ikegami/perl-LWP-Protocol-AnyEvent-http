@@ -5,3 +5,5 @@
 ^blib
 ^LWP-Protocol-AnyEvent-http-.*
 ~$
+^.git/
+.*.bak$

@@ -1,5 +1,9 @@
+.gitignore
 Build.PL
 Changes.txt
+inc/IO/Catch.pm
+inc/Test/HTTP/LocalServer.pm
+inc/Test/HTTP/log-server
 lib/LWP/Protocol/AnyEvent/http.pm
 LICENSE.txt
 MANIFEST
@@ -8,3 +12,5 @@ META.json
 META.yml
 README.txt
 t/00_load.t
+t/01_timer.t
+t/02_large.t
