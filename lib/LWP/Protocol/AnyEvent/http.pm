@@ -54,6 +54,7 @@ sub request {
    my $response = HTTP::Response->new(599, 'Internal Server Error');
    $response->request($request);
 
+   my $headers = AnyEvent->condvar;
    my $data_avail = AnyEvent->condvar();
    my @data;
 
@@ -71,9 +72,15 @@ sub request {
       headers => \%headers,
       %opts,
       recurse => 0,
-      on_body => sub { push @data, \@_; $data_avail->send(); return 1; },
-      sub {            push @data, \@_; $data_avail->send(); },
+      on_header => sub { _set_response_headers($response, $_[0]); $headers->send; 1 },
+      on_body   => sub { push @data, \@_; $data_avail->send; 1  },
+                   sub { push @data, \@_; $data_avail->send();  },
    );
+   
+   # We need to wait for the headers so the response code
+   # is set up properly. LWP::Protocol decides on ->is_success
+   # whether to call the :content_cb or not.
+   $headers->recv;
 
    # On body chunk:            [ $chunk, \%headers       ]
    # On successful completion: [ '',     \%headers       ]
@@ -87,11 +94,20 @@ sub request {
          $data_avail = AnyEvent->condvar();
       };
       
-      my ($body, $headers) = shift(@data);
-      return \$body
-          if defined($body) && length($body);
+      local *_ = shift @data;
       
-      _set_response_headers($response, $headers);
+      return \$_[0]
+          if (defined($_[0]) && length($_[0]));
+      
+      
+      # Clean up our closed-over variables
+      undef $data_avail;
+      undef $response;
+      undef $self;
+      undef $guard;
+      @data = ();
+         
+      # We're done
       return \'';
    });
 }
