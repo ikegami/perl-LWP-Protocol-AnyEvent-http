@@ -1,12 +1,16 @@
-LWP-Protocol-Coro-http
+LWP-Protocol-AnyEvent-http
 
-Coro is a cooperating multitasking system. This means
-it requires some amount of cooperation on the part of
-user code in order to provide parallelism.
+LWP performs a number of blocking calls when trying
+to process requests. This makes it unfriendly to event-driven
+systems and cooperative multitasking system such as Coro.
 
-This module makes LWP more cooperative by plugging
-in an HTTP and HTTPS protocol implementor powered by
-AnyEvent::HTTP.
+This module makes LWP more friendly to these systems
+by plugging in an HTTP and HTTPS protocol implementor
+powered by AnyEvent and AnyEvent::HTTP.
+
+This module is known to work with Coro. Please let
+me (<ikegami@adaelis.com>) know where else this
+is of use so I can add tests and add a mention.
 
 All LWP features and configuration options should still be
 available when using this module.
@@ -28,8 +32,8 @@ This module requires these other modules and libraries:
 
     Module::Build    (For installation only)
     Test::More       (For testing only)
+    AnyEvent
     AnyEvent::HTTP
-    Coro::Channel
     HTTP::Response
     LWP::Protocol
     version
@@ -40,21 +44,21 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc LWP::Protocol::Coro::http
+    perldoc LWP::Protocol::AnyEvent::http
 
 You can also look for information at:
 
     RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=LWP-Protocol-Coro-http
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=LWP-Protocol-AnyEvent-http
 
     AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/LWP-Protocol-Coro-http
+        http://annocpan.org/dist/LWP-Protocol-AnyEvent-http
 
     CPAN Ratings
-        http://cpanratings.perl.org/d/LWP-Protocol-Coro-http
+        http://cpanratings.perl.org/d/LWP-Protocol-AnyEvent-http
 
     Search CPAN
-        http://search.cpan.org/dist/LWP-Protocol-Coro-http
+        http://search.cpan.org/dist/LWP-Protocol-AnyEvent-http
 
 
 COPYRIGHT AND LICENCE

@@ -1,13 +1,13 @@
 
-package LWP::Protocol::Coro::http;
+package LWP::Protocol::AnyEvent::http;
 
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.0.1');
+use version; our $VERSION = qv('v1.0.2');
 
+use AnyEvent       qw( );
 use AnyEvent::HTTP qw( http_request );
-use Coro::Channel  qw( );
 use HTTP::Response qw( );
 use LWP::Protocol  qw( );
 
@@ -19,7 +19,8 @@ LWP::Protocol::implementor($_, __PACKAGE__) for qw( http https );
 sub _set_response_headers {
    my ($response, $headers) = @_;
 
-   $response->protocol( "HTTP/".delete($headers->{ HTTPVersion }) );
+   $response->protocol( "HTTP/".delete($headers->{ HTTPVersion }) )
+      if $headers->{ HTTPVersion };
    $response->code(             delete($headers->{ Status      }) );
    $response->message(          delete($headers->{ Reason      }) );
 
@@ -53,7 +54,8 @@ sub request {
    my $response = HTTP::Response->new(599, 'Internal Server Error');
    $response->request($request);
 
-   my $channel = Coro::Channel->new(1);
+   my $data_avail = AnyEvent->condvar();
+   my @data;
 
    my %handle_opts;
    $handle_opts{read_size}     = $size if defined($size);
@@ -69,17 +71,26 @@ sub request {
       headers => \%headers,
       %opts,
       recurse => 0,
-      on_body => sub { $channel->put(\@_); return 1; },
-      sub {            $channel->put(\@_); },
+      on_body => sub { push @data, \@_; $data_avail->send(); return 1; },
+      sub {            push @data, \@_; $data_avail->send(); },
    );
 
    # On body chunk:            [ $chunk, \%headers       ]
    # On successful completion: [ '',     \%headers       ]
    # On error:                 [ undef,  \%error_headers ]
    return $self->collect($arg, $response, sub {
-      my ($body, $headers) = @{ $channel->get() };
-      return \$body if defined($body) && length($body);
-
+      if (!@data) {
+         # Wait for more data to arrive
+         $data_avail->recv();
+         
+         # Re-prime our channel, in case there is more.
+         $data_avail = AnyEvent->condvar();
+      };
+      
+      my ($body, $headers) = shift(@data);
+      return \$body
+          if defined($body) && length($body);
+      
       _set_response_headers($response, $headers);
       return \'';
    });
@@ -93,39 +104,45 @@ __END__
 
 =head1 NAME
 
-LWP::Protocol::Coro::http - Asynchronous HTTP and HTTPS backend for LWP
+LWP::Protocol::AnyEvent::http - Event loop friendly HTTP and HTTPS backend for LWP
 
 
 =head1 VERSION
 
-Version 1.0.1
+Version 1.0.2
 
 
 =head1 SYNOPSIS
 
-    # Make HTTP and HTTPS requests Coro-friendly.
-    use LWP::Protocol::Coro::http;
+    # Make HTTP and HTTPS requests friendly to event loops.
+    use LWP::Protocol::AnyEvent::http;
 
-    # Or LWP::UserAgent, WWW::Mechanize, etc
-    use LWP::Simple qw( get );
+    # Or LWP::Simple, WWW::Mechanize, etc
+    use LWP::UserAgent;
 
-    # A reason to want LWP parallelised.
+    # A reason to want LWP friendly to event loops.
     use Coro qw( async );
 
-    for my $url (@urls) {
-        async { process( get($url) ) };
-    }
+    my $ua = LWP::UserAgent->new();
+    $ua->protocols_allowed([qw( http https )]);  # Playing it safe.
 
+    for my $url (@urls) {
+        async { process( $ua->get($url) ) };
+    }
 
 =head1 DESCRIPTION
 
-L<Coro> is a cooperating multitasking system. This means
-it requires some amount of cooperation on the part of
-user code in order to provide parallelism.
+L<LWP> performs a number of blocking calls when trying
+to process requests. This makes it unfriendly to event-driven
+systems and cooperative multitasking system such as L<Coro>.
 
-This module makes L<LWP> more cooperative by plugging
-in an HTTP and HTTPS protocol implementor powered by
-L<AnyEvent::HTTP>.
+This module makes LWP more friendly to these systems
+by plugging in an HTTP and HTTPS protocol implementor
+powered by L<AnyEvent> and L<AnyEvent::HTTP>.
+
+This module is known to work with L<Coro>. Please let
+me (C<< <ikegami@adaelis.com> >>) know where else this
+is of use so I can add tests and add a mention.
 
 All LWP features and configuration options should still be
 available when using this module.
@@ -137,31 +154,24 @@ available when using this module.
 
 =item * L<Coro>
 
-An excellent cooperative multitasking library.
+An excellent cooperative multitasking library assisted by this module.
 
-=item * L<AnyEvent::HTTP>
+=item * L<AnyEvent>, L<AnyEvent::HTTP>
 
 Powers this module.
 
-=item * L<LWP::Simple>
-
-Affected by this module.
-
-=item * L<LWP::UserAgent>
-
-Affected by this module.
-
-=item * L<WWW::Mechanize>
+=item * L<LWP::Simple>, L<LWP::UserAgent>, L<WWW::Mechanize>
 
 Affected by this module.
 
 =item * L<Coro::LWP>
 
-An alternative to this module. Intrusive, causing problems in unrelated code. Doesn't support HTTPS. Supports FTP and NTTP.
+An alternative to this module for users of L<Coro>. Intrusive, which results
+in problems in some unrelated code. Doesn't support HTTPS. Supports FTP and NTTP.
 
 =item * L<AnyEvent::HTTP::LWP::UserAgent>
 
-An alternative to this module. Doesn't help code that uses L<LWP::Simple> or L<LWP::UserAgent>.
+An alternative to this module. Doesn't help code that uses L<LWP::Simple> or L<LWP::UserAgent> directly.
 
 =back
 
@@ -175,8 +185,8 @@ I haven't gotten around to implementing proxy support.
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-LWP-Protocol-Coro-http at rt.cpan.org>,
-or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=LWP-Protocol-Coro-http>.
+Please report any bugs or feature requests to C<bug-LWP-Protocol-AnyEvent-http at rt.cpan.org>,
+or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=LWP-Protocol-AnyEvent-http>.
 I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
 
 
@@ -184,7 +194,7 @@ I will be notified, and then you'll automatically be notified of progress on you
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc LWP::Protocol::Coro::http
+    perldoc LWP::Protocol::AnyEvent::http
 
 You can also look for information at:
 
@@ -192,19 +202,19 @@ You can also look for information at:
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/LWP-Protocol-Coro-http>
+L<http://search.cpan.org/dist/LWP-Protocol-AnyEvent-http>
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=LWP-Protocol-Coro-http>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=LWP-Protocol-AnyEvent-http>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/LWP-Protocol-Coro-http>
+L<http://annocpan.org/dist/LWP-Protocol-AnyEvent-http>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/LWP-Protocol-Coro-http>
+L<http://cpanratings.perl.org/d/LWP-Protocol-AnyEvent-http>
 
 =back
 
@@ -212,6 +222,8 @@ L<http://cpanratings.perl.org/d/LWP-Protocol-Coro-http>
 =head1 AUTHOR
 
 Eric Brine, C<< <ikegami@adaelis.com> >>
+
+Max Maischein, C<< <corion@cpan.org> >>
 
 
 =head1 COPYRIGHT & LICENSE

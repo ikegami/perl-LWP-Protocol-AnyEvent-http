@@ -3,4 +3,5 @@
 ^Build.bat$
 ^_build
 ^blib
-^LWP-Protocol-Coro-http-.*
+^LWP-Protocol-AnyEvent-http-.*
+~$
