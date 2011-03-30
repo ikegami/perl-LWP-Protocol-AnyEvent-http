@@ -73,8 +73,8 @@ sub request {
       %opts,
       recurse => 0,
       on_header => sub { _set_response_headers($response, $_[0]); $headers->send; 1 },
-      on_body   => sub { push @data, \@_; $channel->send; 1  },
-                   sub { push @data, \@_; $channel->send();  },
+      on_body   => sub { push @data, \@_; $data_avail->send; 1  },
+                   sub { push @data, \@_; $data_avail->send();  },
    );
    
    # We need to wait for the headers so the response code
@@ -101,7 +101,7 @@ sub request {
       
       
       # Clean up our closed-over variables
-      undef $channel;
+      undef $data_avail;
       undef $response;
       undef $self;
       undef $guard;
