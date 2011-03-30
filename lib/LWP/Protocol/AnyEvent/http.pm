@@ -19,24 +19,26 @@ LWP::Protocol::implementor($_, __PACKAGE__) for qw( http https );
 sub _set_response_headers {
    my ($response, $headers) = @_;
 
-   $response->protocol( "HTTP/".delete($headers->{ HTTPVersion }) )
-      if $headers->{ HTTPVersion };
-   $response->code(             delete($headers->{ Status      }) );
-   $response->message(          delete($headers->{ Reason      }) );
+   my %headers = %$headers;
+
+   $response->protocol( "HTTP/".delete($headers{ HTTPVersion }) )
+      if $headers{ HTTPVersion };
+   $response->code(             delete($headers{ Status      }) );
+   $response->message(          delete($headers{ Reason      }) );
 
    # Uppercase headers are pseudo headers added by AnyEvent::HTTP.
-   delete($headers->{$_}) for grep /^[A-Z]/, keys(%$headers);
+   delete($headers{$_}) for grep /^[A-Z]/, keys(%headers);
 
    if (exists($headers->{'set-cookie'})) {
       # Set-Cookie headers are very non-standard.
       # They cannot be safely joined.
       # Try to undo their joining for HTTP::Cookies.
-      $headers->{'set-cookie'} = [
-         split(/,(?=\s*\w+\s*(?:[=,;]|\z))/, $headers->{'set-cookie'})
+      $headers{'set-cookie'} = [
+         split(/,(?=\s*\w+\s*(?:[=,;]|\z))/, $headers{'set-cookie'})
       ];
    }
 
-   $response->push_header(%$headers);
+   $response->push_header(%headers);
 }
 
 
@@ -99,6 +101,9 @@ sub request {
           if defined($_[0]) && length($_[0]);
       
       # We're done
+      # Update the status in case an error occured when fetching the body.
+      $response->code(    $_[1]{ Status }) );
+      $response->message( $_[1]{ Reason }) );
       return \'';
    });
 }
