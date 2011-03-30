@@ -99,14 +99,6 @@ sub request {
       return \$_[0]
           if (defined($_[0]) && length($_[0]));
       
-      
-      # Clean up our closed-over variables
-      undef $data_avail;
-      undef $response;
-      undef $self;
-      undef $guard;
-      @data = ();
-         
       # We're done
       return \'';
    });
