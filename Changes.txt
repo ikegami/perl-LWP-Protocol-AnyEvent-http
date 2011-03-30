@@ -2,4 +2,6 @@ Revision history for LWP-Protocol-AnyEvent-http
 
 1.0.2   yyyy-mm-dd
         Initial version
-        LWP-Protocol-Coro-http-v1.0.1 minus the dependency on Coro.
+        - LWP-Protocol-Coro-http-v1.0.1 minus the dependency on Coro.
+        - Tests added.
+        - Support for :content_cb fixed.
