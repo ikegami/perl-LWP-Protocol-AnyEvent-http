@@ -1,0 +1,11 @@
+Revision history for LWP-Protocol-Coro-http
+
+1.0.1   2011-03-29
+        - Lots of bug fixes didn't make it into 1.0.0.
+        - Improved Synopsis.
+
+1.0.0   2011-03-28
+        Initial public version
+
+-----   2010-10-10
+        Initial version

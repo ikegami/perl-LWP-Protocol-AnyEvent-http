@@ -1,0 +1,6 @@
+^MYMETA\.
+^Build$
+^Build.bat$
+^_build
+^blib
+^LWP-Protocol-Coro-http-.*

@@ -1,0 +1,28 @@
+---
+abstract: 'Asynchronous HTTP and HTTPS backend for LWP'
+author:
+  - 'Eric Brine <ikegami@adaelis.com>'
+build_requires:
+  Test::More: 0
+configure_requires:
+  Module::Build: 0
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.110580'
+license: unrestricted
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: LWP-Protocol-Coro-http
+provides:
+  LWP::Protocol::Coro::http:
+    file: lib/LWP/Protocol/Coro/http.pm
+    version: v1.0.1
+requires:
+  AnyEvent::HTTP: 2
+  Coro::Channel: 0
+  HTTP::Response: 0
+  LWP::Protocol: 0
+  version: 0
+resources:
+  license: http://creativecommons.org/publicdomain/zero/1.0/
+version: v1.0.1
