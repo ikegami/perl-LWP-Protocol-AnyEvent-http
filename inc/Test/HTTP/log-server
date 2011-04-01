@@ -39,7 +39,6 @@ SERVERLOOP: {
   while (my $c = $d->accept) {
     debug "New connection";
     while (my $r = $c->get_request) {
-      $c->force_last_request;
       debug "Request:\n" . $r->as_string;
       my $location = ($r->uri->path || "/");
       my ($link1,$link2) = ('','');
@@ -107,7 +106,13 @@ SERVERLOOP: {
       eval {
         $c->send_response($res);
       };
-      debug $@ if $@;
+      if (my $err = $@) {
+          debug "Server raised error: $err";
+          if ($err !~ /^Planned error\b/) {
+              warn $err;
+          };
+          $c->close;
+      };
       last if $quitserver;
     }
     sleep 1;
