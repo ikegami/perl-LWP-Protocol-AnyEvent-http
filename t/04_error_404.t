@@ -14,7 +14,7 @@ if (! eval {
 }) {
     plan skip_all => "Couldn't launch test server: $@";
 } else {
-    plan tests => 5;
+    plan tests => 4;
 };
 
 # Launch a timer
@@ -26,21 +26,19 @@ my $t = AnyEvent->timer(
 my $client = LWP::UserAgent->new();
 
 my $server = Test::HTTP::LocalServer->spawn(
-    debug => 1,
+    #debug => 1,
 );
-my $url = $server->chunked;
+my $url = $server->url;
 diag "Retrieving URL: " . $url;
 
-my $chunk_count;
-my $res = $client->get($server->chunked, ':content_cb' => sub {
-    diag "Got chunk";
+my $chunk_count = 0;
+my $res = $client->get("${url}error/notfound/foo", ":content_cb" => sub {
     $chunk_count++
 });
-ok $res->is_success, "We made a successfull request";
-is $res->code, 200, "Yes, real success";
+ok !$res->is_success, "The request was not successfull, as planned";
+is $res->code, 404, "We caught the remote error (404)";
 is $res->content, '', "We got an empty response";
-is $chunk_count, 5, "We received 5 chunks";
-cmp_ok $timer_events, '>', 3, "Retrieving the data took more than 3 seconds (because the server sleeps)";
+is $chunk_count, 0, "We received no chunks either";
 
 undef $t; # stop the timer
 

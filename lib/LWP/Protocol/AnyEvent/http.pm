@@ -102,8 +102,8 @@ sub request {
       
       # We're done
       # Update the status in case an error occured when fetching the body.
-      $response->code(    $_[1]{ Status }) );
-      $response->message( $_[1]{ Reason }) );
+      $response->code(    $_[1]{ Status });
+      $response->message( $_[1]{ Reason });
       return \'';
    });
 }

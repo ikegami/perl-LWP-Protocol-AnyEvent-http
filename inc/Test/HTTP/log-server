@@ -62,7 +62,7 @@ SERVERLOOP: {
         if ($location =~ m!^/redirect/(.*)$!) {
             $res = HTTP::Response->new(302);
             $res->header('location', $d->url . $1);
-        } elsif ($location =~ m!^/notfound/(.*)$!) {
+        } elsif ($location =~ m!^/error/notfound/(.*)$!) {
             $res = HTTP::Response->new(404);
         } elsif ( $location =~ m!^/chunks!) {
             my $count = 5;
@@ -71,6 +71,14 @@ SERVERLOOP: {
                my $buf = ' ' x 16;
                return $buf if $count-- > 0;
                return undef; # done
+            });
+        } elsif ($location =~ m!^/error/after_headers$!) {
+            my $count = 2;
+            $res = HTTP::Response->new(200, "OK", undef, sub {
+               sleep 1;
+               my $buf = ' ' x 16;
+               return $buf if $count-- > 0;
+               die "Planned error after headers";
             });
         } else {
             my $q = CGI->new($r->uri->query);
@@ -96,13 +104,14 @@ SERVERLOOP: {
         };
       };
       debug "Response:\n" . $res->as_string;
-      $c->send_response($res);
+      eval {
+        $c->send_response($res);
+      };
+      debug $@ if $@;
       last if $quitserver;
     }
     sleep 1;
-    #$c->close;
     undef($c);
-    #sleep 1;
     last SERVERLOOP
       if $quitserver;
   }

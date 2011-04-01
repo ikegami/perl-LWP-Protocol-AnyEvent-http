@@ -14,3 +14,5 @@ README.txt
 t/00_load.t
 t/01_timer.t
 t/02_large.t
+t/03_error_after_headers.t
+t/04_error_404.t
