@@ -26,7 +26,7 @@ my $t = AnyEvent->timer(
 my $client = LWP::UserAgent->new();
 
 my $server = Test::HTTP::LocalServer->spawn(
-    debug => 1,
+    #debug => 1,
 );
 my $url = $server->chunked;
 diag "Retrieving URL: " . $url;
