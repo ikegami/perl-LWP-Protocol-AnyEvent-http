@@ -39,7 +39,6 @@ SERVERLOOP: {
   while (my $c = $d->accept) {
     debug "New connection";
     while (my $r = $c->get_request) {
-      $c->force_last_request;
       debug "Request:\n" . $r->as_string;
       my $location = ($r->uri->path || "/");
       my ($link1,$link2) = ('','');
@@ -52,7 +51,7 @@ SERVERLOOP: {
         $log = '';
       } elsif ( $location eq '/quit_server') {
         debug "Quitting";
-        $res = HTTP::Response->new(200, "OK", undef, "quit");
+        $res = HTTP::Response->new(200, "OK", [Connection => 'close'], "quit");
         $quitserver = 1;
       } else {
         eval $expression
@@ -62,7 +61,7 @@ SERVERLOOP: {
         if ($location =~ m!^/redirect/(.*)$!) {
             $res = HTTP::Response->new(302);
             $res->header('location', $d->url . $1);
-        } elsif ($location =~ m!^/notfound/(.*)$!) {
+        } elsif ($location =~ m!^/error/notfound/(.*)$!) {
             $res = HTTP::Response->new(404);
         } elsif ( $location =~ m!^/chunks!) {
             my $count = 5;
@@ -71,6 +70,14 @@ SERVERLOOP: {
                my $buf = ' ' x 16;
                return $buf if $count-- > 0;
                return undef; # done
+            });
+        } elsif ($location =~ m!^/error/after_headers$!) {
+            my $count = 2;
+            $res = HTTP::Response->new(200, "OK", undef, sub {
+               sleep 1;
+               my $buf = ' ' x 16;
+               return $buf if $count-- > 0;
+               die "Planned error after headers";
             });
         } else {
             my $q = CGI->new($r->uri->query);
@@ -96,13 +103,20 @@ SERVERLOOP: {
         };
       };
       debug "Response:\n" . $res->as_string;
-      $c->send_response($res);
+      eval {
+        $c->send_response($res);
+      };
+      if (my $err = $@) {
+          debug "Server raised error: $err";
+          if ($err !~ /^Planned error\b/) {
+              warn $err;
+          };
+          $c->close;
+      };
       last if $quitserver;
     }
     sleep 1;
-    #$c->close;
     undef($c);
-    #sleep 1;
     last SERVERLOOP
       if $quitserver;
   }

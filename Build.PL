@@ -17,7 +17,11 @@ my $build = Module::Build->new(
       'AnyEvent'       => 0,
       'AnyEvent::HTTP' => 2.0,
       'HTTP::Response' => 0,
-      'LWP::Protocol'  => 0,
+      'LWP::Protocol'  => 5.827, # earlier versions might work but
+                                 # LWP::Simple will not always use LWP::Protocol
+                                 # but use its own hand-rolled implementation
+                                 # Also, chunked responses seem to get sent
+                                 # properly only at this version or higher
       'version'        => 0,
    },
    add_to_cleanup => [ 'LWP-Protocol-AnyEvent-http-*' ],
