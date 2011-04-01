@@ -51,7 +51,7 @@ SERVERLOOP: {
         $log = '';
       } elsif ( $location eq '/quit_server') {
         debug "Quitting";
-        $res = HTTP::Response->new(200, "OK", undef, "quit");
+        $res = HTTP::Response->new(200, "OK", [Connection => 'close'], "quit");
         $quitserver = 1;
       } else {
         eval $expression
