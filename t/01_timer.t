@@ -32,7 +32,7 @@ diag "Retrieving URL: " . $url;
 
 my $data = get($url) || '';
 isn't $data, '', "Retrieve " . $url;
-cmp_ok $timer_events, '>', 3, "Retrieving the data took more than 3 seconds (because the server sleeps)";
+cmp_ok $timer_events, '>', 3, "While retrieving the data we got three timer callbacks(because the server sleeps)";
 
 undef $t; # stop the timer
 
