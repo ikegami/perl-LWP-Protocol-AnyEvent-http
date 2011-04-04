@@ -13,7 +13,10 @@ GetOptions(
 );
 
 my $d = HTTP::Daemon->new(
-    LocalAddr => 'localhost',
+    # As much as binding to localhost is desired,
+    # HTTP::Deamon doesn't return http://localhost:.../.
+    # This causes the tests to fail of many machines.
+    #LocalAddr => 'localhost',
 ) or die;
 print $d->url, "\n";
 
