@@ -92,7 +92,7 @@ sub request {
 
          # It is possible for the request to complete without
          # calling the header callback in the event of error.
-         # It is also possible the Status to change as the
+         # It is also possible for the Status to change as the
          # result of an error. This handles these events.
          _set_response_headers($response, $_[1]);
          $headers_avail->send();
