@@ -77,7 +77,7 @@ sub request {
       on_header => sub { _set_response_headers($response, $_[0]); $headers_avail->send(); 1 },
       on_body   => sub { push @data, \@_; $data_avail->send(); 1  },
                    # If we get here, we likely have an error
-                   sub { _set_response_headers($response, $_[1]); $headers_avail->send(); push @data, [$_[1],$_[0]]; $data_avail->send();  },
+                   sub { _set_response_headers($response, $_[1]); $headers_avail->send(); push @data, \@_; $data_avail->send();  },
    );
    
    # We need to wait for the headers so the response code
