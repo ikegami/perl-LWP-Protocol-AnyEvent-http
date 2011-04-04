@@ -58,7 +58,7 @@ sub request {
 
    my $headers_avail = AnyEvent->condvar();
    my $data_avail    = AnyEvent->condvar();
-   my @data;
+   my @data_queue;
 
    my %handle_opts;
    $handle_opts{read_size}     = $size if defined($size);
@@ -74,10 +74,32 @@ sub request {
       headers => \%headers,
       %opts,
       recurse => 0,
-      on_header => sub { _set_response_headers($response, $_[0]); $headers_avail->send(); 1 },
-      on_body   => sub { push @data, \@_; $data_avail->send(); 1  },
-                   # If we get here, we likely have an error
-                   sub { _set_response_headers($response, $_[1]); $headers_avail->send(); push @data, \@_; $data_avail->send();  },
+      on_header => sub {
+         #my ($headers) = @_;
+         _set_response_headers($response, $_[0]);
+         $headers_avail->send();
+         return 1;
+      },
+      on_body => sub {
+         #my ($chunk, $headers) = @_;
+         push @data_queue, \$_[0];
+         $data_avail->send();
+         return 1;
+      },
+      sub { # On completion
+         # On successful completion: @_ = ('',     $headers)
+         # On error:                 @_ = (undef,  $headers)
+
+         # It is possible for the request to complete without
+         # calling the header callback in the event of error.
+         # It is also possible the Status to change as the
+         # result of an error. This handles these events.
+         _set_response_headers($response, $_[1]);
+         $headers_avail->send();
+
+         push @data_queue, \'';
+         $data_avail->send();
+      },
    );
    
    # We need to wait for the headers so the response code
@@ -85,11 +107,8 @@ sub request {
    # whether to call the :content_cb or not.
    $headers_avail->recv();
 
-   # On body chunk:            [ $chunk, \%headers       ]
-   # On successful completion: [ '',     \%headers       ]
-   # On error:                 [ undef,  \%error_headers ]
    return $self->collect($arg, $response, sub {
-      if (!@data) {
+      if (!@data_queue) {
          # Wait for more data to arrive
          $data_avail->recv();
          
@@ -97,15 +116,7 @@ sub request {
          $data_avail = AnyEvent->condvar();
       };
       
-      local *_ = shift(@data);      
-      return \$_[0]
-          if defined($_[0]) && length($_[0]);
-      
-      # We're done
-      # Update the status in case an error occured when fetching the body.
-      $response->code(    $_[1]{ Status } );
-      $response->message( $_[1]{ Reason } );
-      return \'';
+      return shift(@data_queue);
    });
 }
 
