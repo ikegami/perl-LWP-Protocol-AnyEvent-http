@@ -8,20 +8,26 @@ my $build = Module::Build->new(
    dist_author => 'Eric Brine <ikegami@adaelis.com>',
    license     => 'CC0_1_0',
    configure_requires => {
-      'Module::Build' => 0,
+      'Module::Build' => 0.36_14,
    },
    build_requires => {
-      'Test::More' => 0,
+      'Carp'         => 0,
+      'CGI'          => 0,
+      'File::Spec'   => 0,
+      'File::Temp'   => 0,
+      'FindBin'      => 0,
+      'Getopt::Long' => 0,
+      'HTTP::Daemon' => 0,
+      'LWP::Simple'  => 0,
+      'Test::More'   => 0,
+      'URI::URL'     => 0,
    },
    requires => {
       'AnyEvent'       => 0,
       'AnyEvent::HTTP' => 2.0,
       'HTTP::Response' => 0,
-      'LWP::Protocol'  => 5.827, # earlier versions might work but
-                                 # LWP::Simple will not always use LWP::Protocol
-                                 # but use its own hand-rolled implementation
-                                 # Also, chunked responses seem to get sent
-                                 # properly only at this version or higher
+      'LWP::Protocol'  => 0,
+      'LWP::Simple'    => 5.827, # Not strictly required, but ensures that LWP::Simple will actually use LWP::Protocol.
       'version'        => 0,
    },
    add_to_cleanup => [ 'LWP-Protocol-AnyEvent-http-*' ],
