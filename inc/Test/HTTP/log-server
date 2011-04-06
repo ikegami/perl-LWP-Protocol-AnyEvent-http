@@ -12,13 +12,16 @@ GetOptions(
     'e=s' => \my $expression,
 );
 
+my $host = 'localhost';
 my $d = HTTP::Daemon->new(
-    # As much as binding to localhost is desired,
-    # HTTP::Deamon doesn't return http://localhost:.../.
-    # This causes the tests to fail of many machines.
-    #LocalAddr => 'localhost',
+    LocalAddr => $host,
 ) or die;
-print $d->url, "\n";
+
+# HTTP::Deamon doesn't return http://localhost:.../
+# for LocalAddr => 'localhost'. This causes the
+# tests to fail of many machines.
+( my $url = URI->new($d->url) )->host($host);
+print "$url\n";
 
 my ($filename,$logfile) = @ARGV[0,1];
 if ($filename) {
