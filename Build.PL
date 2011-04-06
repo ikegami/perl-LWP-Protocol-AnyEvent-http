@@ -20,6 +20,7 @@ my $build = Module::Build->new(
       'HTTP::Daemon' => 0,
       'LWP::Simple'  => 0,
       'Test::More'   => 0,
+      'URI'          => 0,
       'URI::URL'     => 0,
    },
    requires => {
