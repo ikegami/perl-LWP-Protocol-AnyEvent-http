@@ -12,6 +12,7 @@ build_requires:
   HTTP::Daemon: 0
   LWP::Simple: 0
   Test::More: 0
+  URI: 0
   URI::URL: 0
 configure_requires:
   Module::Build: 0.3614
