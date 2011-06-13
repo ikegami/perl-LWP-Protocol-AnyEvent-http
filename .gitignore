@@ -12,3 +12,5 @@ MYMETA.*
 Build
 Build.bat
 _build/
+pod2htmd.tmp
+pod2htmi.tmp
