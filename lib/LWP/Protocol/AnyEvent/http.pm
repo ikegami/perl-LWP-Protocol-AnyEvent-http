@@ -101,7 +101,7 @@ sub request {
          $data_avail->send();
       },
    );
-   
+
    # We need to wait for the headers so the response code
    # is set up properly. LWP::Protocol decides on ->is_success
    # whether to call the :content_cb or not.
@@ -111,11 +111,11 @@ sub request {
       if (!@data_queue) {
          # Wait for more data to arrive
          $data_avail->recv();
-         
+
          # Re-prime our channel, in case there is more.
          $data_avail = AnyEvent->condvar();
       };
-      
+
       return shift(@data_queue);
    });
 }
