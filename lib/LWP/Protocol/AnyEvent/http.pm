@@ -177,6 +177,11 @@ available when using this module.
 
 =over 4
 
+=item * L<LWP::Protocol::Coro::http>
+
+An earlier implementation of this module that requires L<Coro>.
+These two modules are developed in parallel.
+
 =item * L<Coro>
 
 An excellent cooperative multitasking library assisted by this module.
