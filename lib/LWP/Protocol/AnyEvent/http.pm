@@ -154,6 +154,7 @@ Version 1.0.2
         async { process( $ua->get($url) ) };
     }
 
+
 =head1 DESCRIPTION
 
 L<LWP> performs a number of blocking calls when trying
