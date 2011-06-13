@@ -9,6 +9,7 @@ LWP-Protocol-AnyEvent-http-*/
 .releaserc
 cover_db
 MYMETA.*
+META.*
 Build
 Build.bat
 _build/
