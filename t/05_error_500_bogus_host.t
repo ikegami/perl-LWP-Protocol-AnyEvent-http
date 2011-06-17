@@ -5,16 +5,7 @@ use Test::More;
 use LWP::Protocol::AnyEvent::http;
 use LWP::UserAgent;
 
-# Check whether we can launch the local webserver
-if (! eval {
-    use lib '../inc', 'inc';
-    require Test::HTTP::LocalServer;
-    1;
-}) {
-    plan skip_all => "Couldn't launch test server: $@";
-} else {
-    plan tests => 4;
-};
+plan tests => 4;
 
 my $client = LWP::UserAgent->new();
 
