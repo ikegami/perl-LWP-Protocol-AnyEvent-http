@@ -1,6 +1,6 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
-1.0.3   xxxx-xx-xx
+1.0.3   2011-06-17
         - Skip tests that will fail due to DNS hijacking.
 
 1.0.2   2011-06-13
