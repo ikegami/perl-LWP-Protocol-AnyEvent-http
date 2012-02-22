@@ -27,7 +27,7 @@ sub _set_response_headers {
    $response->message(          delete($headers{ Reason      }) );
 
    # Uppercase headers are pseudo headers added by AnyEvent::HTTP.
-   delete($headers{$_}) for grep /^[A-Z]/, keys(%headers);
+   $headers{"X-AE-$_"} = delete($headers{$_}) for grep /^(?!X-)[A-Z]/, keys(%headers);
 
    if (exists($headers->{'set-cookie'})) {
       # Set-Cookie headers are very non-standard.
