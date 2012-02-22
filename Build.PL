@@ -33,6 +33,11 @@ my $build = Module::Build->new(
       'version'        => 0,
    },
    add_to_cleanup => [ 'LWP-Protocol-AnyEvent-http-*' ],
+   meta_merge     => {
+      resources => {
+         repository => "http://github.com/ikegami/perl-LWP-Protocol-AnyEvent-http",
+      }
+   },
 );
 
 $build->create_build_script();
