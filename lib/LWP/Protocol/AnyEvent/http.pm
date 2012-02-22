@@ -115,11 +115,11 @@ sub request {
 
    return $self->collect($arg, $response, sub {
       if (!@data_queue) {
-         # Wait for more data to arrive
-         $data_avail->recv();
-
          # Re-prime our channel, in case there is more.
          $data_avail = AnyEvent->condvar();
+
+         # Wait for more data to arrive
+         $data_avail->recv();
       };
 
       return shift(@data_queue);
