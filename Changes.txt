@@ -4,6 +4,7 @@ Revision history for LWP-Protocol-AnyEvent-http
         - Preserve AnyEvent::HTTP pseudo heads by prefixing with X-AE-
         - Fix duplicate headers in response
         - Add proxy support
+        - Prevent AnyEvent::HTTP adding Referer header with the request URL
 
 1.0.3   2011-06-17
         - Skip tests that will fail due to DNS hijacking.

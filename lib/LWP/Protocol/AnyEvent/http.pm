@@ -47,8 +47,11 @@ sub request {
 
    my $method  = $request->method();
    my $url     = $request->uri();
-   my %headers;  $request->headers()->scan(sub { $headers{$_[0]} = $_[1]; });
+   my %headers;  $request->headers()->scan(sub { $headers{lc $_[0]} = $_[1]; });
    my $body    = $request->content_ref();
+
+   # Fix AnyEvent::HTTP setting Referer to the request URL
+   $headers{referer} = undef unless exists $headers{referer};
 
    # The status code will be replaced.
    my $response = HTTP::Response->new(599, 'Internal Server Error');
