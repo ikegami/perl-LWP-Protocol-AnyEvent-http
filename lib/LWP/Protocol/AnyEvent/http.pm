@@ -45,8 +45,6 @@ sub _set_response_headers {
 sub request {
    my ($self, $request, $proxy, $arg, $size, $timeout) = @_;
 
-   #TODO Obey $proxy
-
    my $method  = $request->method();
    my $url     = $request->uri();
    my %headers;  $request->headers()->scan(sub { $headers{$_[0]} = $_[1]; });
@@ -67,6 +65,11 @@ sub request {
    my %opts = ( handle_params => \%handle_opts );
    $opts{body}    = $$body   if defined($body);
    $opts{timeout} = $timeout if defined($timeout);
+
+   if ($proxy) {
+      my $proxy_uri = URI->new($proxy);
+      $opts{proxy} = [$proxy_uri->host, $proxy_uri->port, $proxy_uri->scheme];
+   }
 
    # Let LWP handle redirects and cookies.
    my $guard = http_request(
@@ -204,13 +207,6 @@ in problems in some unrelated code. Doesn't support HTTPS. Supports FTP and NTTP
 An alternative to this module. Doesn't help code that uses L<LWP::Simple> or L<LWP::UserAgent> directly.
 
 =back
-
-
-=head1 KNOWN BUGS
-
-=head2 Ignores proxy settings
-
-I haven't gotten around to implementing proxy support.
 
 
 =head1 BUGS
