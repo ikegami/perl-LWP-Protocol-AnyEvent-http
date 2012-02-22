@@ -35,10 +35,14 @@ my $chunk_count = 0;
 my $res = $client->get("${url}error/notfound/foo", ":content_cb" => sub {
     $chunk_count++
 });
+
+my $date_count = () = $res->headers->as_string =~ m!^(Date:)!mig;
+
 ok !$res->is_success, "The request was not successfull, as planned";
 is $res->code, 404, "We caught the remote error (404)";
 is $res->content, '', "We got an empty response";
 is $chunk_count, 0, "We received no chunks either";
+is $date_count, 1, "Only 1 Date header in response";
 
 undef $t; # stop the timer
 

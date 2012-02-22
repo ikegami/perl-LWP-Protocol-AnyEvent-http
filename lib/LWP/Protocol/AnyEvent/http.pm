@@ -38,7 +38,7 @@ sub _set_response_headers {
       ];
    }
 
-   $response->push_header(%headers);
+   $response->header(%headers);
 }
 
 
