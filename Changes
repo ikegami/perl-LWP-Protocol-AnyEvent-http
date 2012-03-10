@@ -1,6 +1,6 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
-1.0.4   2012-mm-dd
+1.0.4   2012-03-09
         - Preserve AnyEvent::HTTP pseudo heads by prefixing with X-AE-
         - Fix duplicate headers in response
         - Add proxy support
