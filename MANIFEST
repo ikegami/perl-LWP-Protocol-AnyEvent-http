@@ -1,6 +1,6 @@
 .gitignore
 Build.PL
-Changes.txt
+Changes
 inc/IO/Catch.pm
 inc/Test/HTTP/LocalServer.pm
 inc/Test/HTTP/log-server
