@@ -35,9 +35,9 @@ $client->proxy(http => $url);
 
 my $fetch_url = "http://no.such.domain";
 my $res = $client->get($fetch_url);
-is $res->code, 200, "Got response";
+is $res->code, 404, "Got response";
 
-is $fetch_url, $res->content, "Sent proxy requet";
+is $res->content, $fetch_url, "Sent proxy requet";
 
 
 undef $t; # stop the timer
