@@ -248,11 +248,13 @@ L<http://cpanratings.perl.org/d/LWP-Protocol-AnyEvent-http>
 =back
 
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Eric Brine, C<< <ikegami@adaelis.com> >>
 
 Max Maischein, C<< <corion@cpan.org> >>
+
+Graham Barr, C<< <gbarr@pobox.com> >>
 
 
 =head1 COPYRIGHT & LICENSE
