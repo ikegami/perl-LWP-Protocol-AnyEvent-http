@@ -27,7 +27,7 @@ sub _set_response_headers {
    $response->message(          delete($headers{ Reason      }) );
 
    # Uppercase headers are pseudo headers added by AnyEvent::HTTP.
-   delete($headers{$_}) for grep /^[A-Z]/, keys(%headers);
+   $headers{"X-AE-$_"} = delete($headers{$_}) for grep /^(?!X-)[A-Z]/, keys(%headers);
 
    if (exists($headers->{'set-cookie'})) {
       # Set-Cookie headers are very non-standard.
@@ -38,19 +38,20 @@ sub _set_response_headers {
       ];
    }
 
-   $response->push_header(%headers);
+   $response->header(%headers);
 }
 
 
 sub request {
    my ($self, $request, $proxy, $arg, $size, $timeout) = @_;
 
-   #TODO Obey $proxy
-
    my $method  = $request->method();
    my $url     = $request->uri();
-   my %headers;  $request->headers()->scan(sub { $headers{$_[0]} = $_[1]; });
+   my %headers;  $request->headers()->scan(sub { $headers{lc $_[0]} = $_[1]; });
    my $body    = $request->content_ref();
+
+   # Fix AnyEvent::HTTP setting Referer to the request URL
+   $headers{referer} = undef unless exists $headers{referer};
 
    # The status code will be replaced.
    my $response = HTTP::Response->new(599, 'Internal Server Error');
@@ -67,6 +68,11 @@ sub request {
    my %opts = ( handle_params => \%handle_opts );
    $opts{body}    = $$body   if defined($body);
    $opts{timeout} = $timeout if defined($timeout);
+
+   if ($proxy) {
+      my $proxy_uri = URI->new($proxy);
+      $opts{proxy} = [$proxy_uri->host, $proxy_uri->port, $proxy_uri->scheme];
+   }
 
    # Let LWP handle redirects and cookies.
    my $guard = http_request(
@@ -109,11 +115,11 @@ sub request {
 
    return $self->collect($arg, $response, sub {
       if (!@data_queue) {
-         # Wait for more data to arrive
-         $data_avail->recv();
-
          # Re-prime our channel, in case there is more.
          $data_avail = AnyEvent->condvar();
+
+         # Wait for more data to arrive
+         $data_avail->recv();
       };
 
       return shift(@data_queue);
@@ -204,13 +210,6 @@ in problems in some unrelated code. Doesn't support HTTPS. Supports FTP and NTTP
 An alternative to this module. Doesn't help code that uses L<LWP::Simple> or L<LWP::UserAgent> directly.
 
 =back
-
-
-=head1 KNOWN BUGS
-
-=head2 Ignores proxy settings
-
-I haven't gotten around to implementing proxy support.
 
 
 =head1 BUGS

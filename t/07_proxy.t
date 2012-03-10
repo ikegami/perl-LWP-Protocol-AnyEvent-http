@@ -31,18 +31,14 @@ my $server = Test::HTTP::LocalServer->spawn(
 my $url = $server->url;
 diag "Retrieving URL: " . $url;
 
-my $chunk_count = 0;
-my $res = $client->get("${url}error/notfound/foo", ":content_cb" => sub {
-    $chunk_count++
-});
+$client->proxy(http => $url);
 
-my $date_count = () = $res->headers->as_string =~ m!^(Date:)!mig;
+my $fetch_url = "http://no.such.domain";
+my $res = $client->get($fetch_url);
+is $res->code, 200, "Got response";
 
-ok !$res->is_success, "The request was not successfull, as planned";
-is $res->code, 404, "We caught the remote error (404)";
-is $res->content, '', "We got an empty response";
-is $chunk_count, 0, "We received no chunks either";
-is $date_count, 1, "Only 1 Date header in response";
+is $fetch_url, $res->content, "Sent proxy requet";
+
 
 undef $t; # stop the timer
 
@@ -50,3 +46,4 @@ diag "Shutting down server";
 $server->stop;
 undef $server;
 diag "Done";
+

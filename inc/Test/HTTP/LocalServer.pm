@@ -203,6 +203,7 @@ use vars qw(%urls);
     'error_notfound' => 'error/notfound/%s',
     'error_after_headers' => 'error/after_headers',
     'chunked' => 'chunks',
+    'referer' => 'referer',
 );
 for (keys %urls) {
     no strict 'refs';

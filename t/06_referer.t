@@ -23,7 +23,7 @@ my $t = AnyEvent->timer(
     after => 1, interval => 1, cb => sub { diag "Waiting for reply\n"; $timer_events++ }
 );
 
-my $client = LWP::UserAgent->new();
+my $client = LWP::UserAgent->new(requests_redirectable => []);
 
 my $server = Test::HTTP::LocalServer->spawn(
     #debug => 1,
@@ -31,18 +31,14 @@ my $server = Test::HTTP::LocalServer->spawn(
 my $url = $server->url;
 diag "Retrieving URL: " . $url;
 
-my $chunk_count = 0;
-my $res = $client->get("${url}error/notfound/foo", ":content_cb" => sub {
-    $chunk_count++
-});
+my $res = $client->get($server->referer);
+is $res->code, 204, "No Referer was sent"
+   or diag($res->headers->as_string);
 
-my $date_count = () = $res->headers->as_string =~ m!^(Date:)!mig;
-
-ok !$res->is_success, "The request was not successfull, as planned";
-is $res->code, 404, "We caught the remote error (404)";
-is $res->content, '', "We got an empty response";
-is $chunk_count, 0, "We received no chunks either";
-is $date_count, 1, "Only 1 Date header in response";
+my $referer = "http://example.com";
+$res = $client->get($server->referer, Referer => $referer);
+is $res->code, 302, "Sent Referer header";
+is $res->header('Location'), $referer, "Sent expected Referer";
 
 undef $t; # stop the timer
 
@@ -50,3 +46,4 @@ diag "Shutting down server";
 $server->stop;
 undef $server;
 diag "Done";
+
