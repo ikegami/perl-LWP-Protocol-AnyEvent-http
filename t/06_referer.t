@@ -14,7 +14,7 @@ if (! eval {
 }) {
     plan skip_all => "Couldn't launch test server: $@";
 } else {
-    plan tests => 4;
+    plan tests => 3;
 };
 
 # Launch a timer
@@ -46,4 +46,3 @@ diag "Shutting down server";
 $server->stop;
 undef $server;
 diag "Done";
-

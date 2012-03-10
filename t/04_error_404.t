@@ -14,7 +14,7 @@ if (! eval {
 }) {
     plan skip_all => "Couldn't launch test server: $@";
 } else {
-    plan tests => 4;
+    plan tests => 5;
 };
 
 # Launch a timer
