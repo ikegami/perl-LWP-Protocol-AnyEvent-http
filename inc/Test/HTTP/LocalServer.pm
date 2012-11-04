@@ -204,6 +204,7 @@ use vars qw(%urls);
     'error_after_headers' => 'error/after_headers',
     'chunked' => 'chunks',
     'referer' => 'referer',
+    'multiline_header' => 'multiline_header',
 );
 for (keys %urls) {
     no strict 'refs';

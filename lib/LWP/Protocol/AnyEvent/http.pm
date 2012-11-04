@@ -38,6 +38,10 @@ sub _set_response_headers {
       ];
    }
 
+   # Immitate Net::HTTP's removal of newlines.
+   s/\s*\n\s+/ /g
+      for values %headers;
+
    $response->header(%headers);
 }
 

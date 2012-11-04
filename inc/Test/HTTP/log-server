@@ -87,6 +87,9 @@ SERVERLOOP: {
            } else {
               $res = HTTP::Response->new(204);
            }
+        } elsif ($location =~ m!^/multiline_header$!) {
+           $res = HTTP::Response->new(200);
+           $res->header('MultiLine', "foo\nbar");
         } elsif ($location =~ m!^/error/after_headers$!) {
             my $count = 2;
             $res = HTTP::Response->new(200, "OK", undef, sub {

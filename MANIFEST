@@ -19,3 +19,4 @@ t/04_error_404.t
 t/05_error_500_bogus_host.t
 t/06_referer.t
 t/07_proxy.t
+t/08_multiline_header.t
