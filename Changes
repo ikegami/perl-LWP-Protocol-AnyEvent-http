@@ -1,6 +1,6 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
-1.0.6   xxxx-xx-xx
+1.0.6   2012-11-04
         - Immitate Net::HTTP's removal of newlines from headers.
 
 1.0.5   2012-04.25
