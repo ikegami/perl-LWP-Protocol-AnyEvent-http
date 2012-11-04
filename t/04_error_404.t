@@ -28,11 +28,11 @@ my $client = LWP::UserAgent->new();
 my $server = Test::HTTP::LocalServer->spawn(
     #debug => 1,
 );
-my $url = $server->url;
+my $url = $server->url . 'error/notfound/foo';
 diag "Retrieving URL: " . $url;
 
 my $chunk_count = 0;
-my $res = $client->get("${url}error/notfound/foo", ":content_cb" => sub {
+my $res = $client->get($url, ":content_cb" => sub {
     $chunk_count++
 });
 

@@ -28,15 +28,15 @@ my $client = LWP::UserAgent->new(requests_redirectable => []);
 my $server = Test::HTTP::LocalServer->spawn(
     #debug => 1,
 );
-my $url = $server->url;
+my $url = $server->referer;
 diag "Retrieving URL: " . $url;
 
-my $res = $client->get($server->referer);
+my $res = $client->get($url);
 is $res->code, 204, "No Referer was sent"
    or diag($res->headers->as_string);
 
 my $referer = "http://example.com";
-$res = $client->get($server->referer, Referer => $referer);
+$res = $client->get($url, Referer => $referer);
 is $res->code, 302, "Sent Referer header";
 is $res->header('Location'), $referer, "Sent expected Referer";
 

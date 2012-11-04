@@ -32,7 +32,7 @@ my $url = $server->chunked;
 diag "Retrieving URL: " . $url;
 
 my $chunk_count;
-my $res = $client->get($server->chunked, ':content_cb' => sub {
+my $res = $client->get($url, ':content_cb' => sub {
     diag "Got chunk";
     $chunk_count++
 });

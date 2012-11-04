@@ -28,11 +28,11 @@ my $client = LWP::UserAgent->new();
 my $server = Test::HTTP::LocalServer->spawn(
     #debug => 1,
 );
-my $url = $server->url;
+my $url = $server->error_after_headers;
 diag "Retrieving URL: " . $url;
 
 my $chunk_count;
-my $res = $client->get($server->error_after_headers, ':content_cb' => sub {
+my $res = $client->get($url, ':content_cb' => sub {
     diag "Got chunk";
     $chunk_count++
 });
