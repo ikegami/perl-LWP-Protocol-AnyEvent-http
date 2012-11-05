@@ -1,5 +1,8 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
+1.0.7   xxxx-xx-xx
+        - Implement LWP::Protocol::https's ssl peer verification.
+
 1.0.6   2012-11-04
         - Imitate Net::HTTP's removal of newlines from headers.
 

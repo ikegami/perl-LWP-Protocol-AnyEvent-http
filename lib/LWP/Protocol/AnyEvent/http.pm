@@ -16,6 +16,38 @@ our @ISA = 'LWP::Protocol';
 LWP::Protocol::implementor($_, __PACKAGE__) for qw( http https );
 
 
+# This code was based on _extra_sock_opts in LWP::Protocol::https
+sub _get_tls_ctx {
+   my ($self) = @_;
+   my %ssl_opts = %{$self->{ua}{ssl_opts} || {}};
+   my %tls_ctx;
+
+   # convert various ssl_opts values to corresponding AnyEvent::TLS tls_ctx values
+   $tls_ctx{verify}          = $ssl_opts{SSL_verify_mode};
+   $tls_ctx{verify_peername} = 'http'                 if defined($ssl_opts{SSL_verifycn_scheme}) && $ssl_opts{SSL_verifycn_scheme} eq 'www';
+   $tls_ctx{ca_file}         = $ssl_opts{SSL_ca_file} if exists($ssl_opts{SSL_ca_file});
+   $tls_ctx{ca_path}         = $ssl_opts{SSL_ca_path} if exists($ssl_opts{SSL_ca_path});
+
+   if ($ssl_opts{verify_hostname}) {
+      $tls_ctx{verify} ||= 1;
+      $tls_ctx{verify_peername} = 'http';
+   }
+
+   # we are verifying certificates, but don't have any CA specified, try using Mozilla::CA
+   if ($tls_ctx{verify} && !(exists $tls_ctx{ca_file} || exists $tls_ctx{ca_path})) {
+      eval {require Mozilla::CA};
+      if ($@) {
+         if ($@ !~ /^Can\'t locate Mozilla\/CA\.pm/) {
+            die 'Unable to find a list of Certificate Authorities to trust. To fix this error, either install Mozilla::CA or configure the ssl_opts as documented in LWP::UserAgent';
+         }
+         die $@;
+      }
+      $tls_ctx{ca_file} = Mozilla::CA::SSL_ca_file();
+   }
+
+   return \%tls_ctx;
+}
+
 sub _set_response_headers {
    my ($response, $headers) = @_;
 
@@ -72,6 +104,7 @@ sub request {
    my %opts = ( handle_params => \%handle_opts );
    $opts{body}    = $$body   if defined($body);
    $opts{timeout} = $timeout if defined($timeout);
+   $opts{tls_ctx} = $self->_get_tls_ctx if $url->scheme eq 'https';
 
    if ($proxy) {
       my $proxy_uri = URI->new($proxy);
