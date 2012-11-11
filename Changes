@@ -1,6 +1,6 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
-1.0.7   xxxx-xx-xx
+1.0.7   2012-11-10
         - Implement LWP::Protocol::https's ssl peer verification.
 
 1.0.6   2012-11-04
