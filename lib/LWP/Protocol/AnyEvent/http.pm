@@ -87,7 +87,12 @@ sub request {
 
    my $method  = $request->method();
    my $url     = $request->uri();
-   my %headers;  $request->headers()->scan(sub { $headers{ lc($_[0]) } = $_[1]; });
+   my %headers;  $request->headers()->scan(sub {
+      my ($k, $v) = @_;
+      # Imitate LWP::Protocol::http's removal of newlines.
+      $v =~ s/\n/ /g;
+      $headers{ lc($k) } = $v;
+   });
    my $body    = $request->content_ref();
 
    # Fix AnyEvent::HTTP setting Referer to the request URL
