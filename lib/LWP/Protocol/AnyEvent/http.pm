@@ -6,10 +6,11 @@ use warnings;
 
 use version; our $VERSION = qv('v1.0.7');
 
-use AnyEvent       qw( );
-use AnyEvent::HTTP qw( http_request );
-use HTTP::Response qw( );
-use LWP::Protocol  qw( );
+use AnyEvent            qw( );
+use AnyEvent::HTTP      qw( http_request );
+use HTTP::Response      qw( );
+use LWP::Protocol       qw( );
+use LWP::Protocol::http qw( );
 
 our @ISA = 'LWP::Protocol';
 
@@ -85,15 +86,25 @@ sub _set_response_headers {
 sub request {
    my ($self, $request, $proxy, $arg, $size, $timeout) = @_;
 
-   my $method  = $request->method();
-   my $url     = $request->uri();
-   my %headers;  $request->headers()->scan(sub {
-      my ($k, $v) = @_;
-      # Imitate LWP::Protocol::http's removal of newlines.
-      $v =~ s/\n/ /g;
-      $headers{ lc($k) } = $v;
-   });
-   my $body    = $request->content_ref();
+   my $method = $request->method();
+   my $url    = $request->uri();
+
+   my %headers;
+   {
+      my $headers_obj = $request->headers->clone();
+
+      # Convert user:pass in url into an Authorization header.
+      LWP::Protocol::http->_fixup_header($headers_obj, $url, $proxy);
+
+      $headers_obj->scan(sub {
+         my ($k, $v) = @_;
+         # Imitate LWP::Protocol::http's removal of newlines.
+         $v =~ s/\n/ /g;
+         $headers{ lc($k) } = $v;
+      });
+   }
+
+   my $body = $request->content_ref();
 
    # Fix AnyEvent::HTTP setting Referer to the request URL
    $headers{referer} = undef unless exists $headers{referer};
@@ -152,7 +163,7 @@ sub request {
          _set_response_headers($response, $_[1]);
          $headers_avail->send();
 
-         push @data_queue, \'';
+         push @data_queue, \'';    # '
          $data_avail->send();
       },
    );

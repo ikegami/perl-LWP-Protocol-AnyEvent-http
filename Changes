@@ -2,6 +2,7 @@ Revision history for LWP-Protocol-AnyEvent-http
 
 1.8.0   xxxx-xx-xx
         - Imitate LWP::Protocol::http's removal of newlines from request headers.
+        - Handle user:pass in request urls and proxy urls.
 
 1.0.7   2012-11-10
         - Implement LWP::Protocol::https's ssl peer verification.
