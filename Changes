@@ -1,5 +1,8 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
+1.10.0  ~~~~-~~-~~
+        - ~~~
+
 1.8.0   2013-08-05
         - Imitate LWP::Protocol::http's removal of newlines from request headers.
         - Handle user:pass in request urls and proxy urls.
