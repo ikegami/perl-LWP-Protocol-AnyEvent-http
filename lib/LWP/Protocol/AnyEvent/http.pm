@@ -213,12 +213,46 @@ Version 1.9.0
     # A reason to want LWP friendly to event loops.
     use Coro qw( async );
 
-    my $ua = LWP::UserAgent->new();
-    $ua->protocols_allowed([qw( http https )]);  # Playing it safe.
-
     for my $url (@urls) {
-        async { process( $ua->get($url) ) };
+        async {
+            my $ua = LWP::UserAgent->new();
+            $ua->protocols_allowed([qw( http https )]);  # The only protocols made safe.
+
+            process( $ua->get($url) );
+        };
     }
+    
+
+
+    # Using a worker pool model to fetch web pages in parallel.
+
+    use Coro                          qw( async );
+    use Coro::Channel                 qw( );
+    use LWP::Protocol::AnyEvent::http qw( );
+    use LWP::UserAgent                qw( );
+
+    my $num_workers = 10;
+
+    my $q = Coro::Channel->new();
+
+    my @threads;
+    for (1..$num_workers) {
+        push @threads, async {
+            my $ua = LWP::UserAgent->new();
+            $ua->protocols_allowed([qw( http https )]);
+
+            while (my $url = $q->get()) {
+                handle_response($ua->get($url));
+            }
+        }
+    }
+
+    while (my $url = get_next_url()) {
+        $q->put($url);
+    }
+
+    $q->shutdown();
+    $_->join() for @threads;
 
 
 =head1 DESCRIPTION
