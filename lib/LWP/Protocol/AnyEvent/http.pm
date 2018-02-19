@@ -25,9 +25,13 @@ sub _get_tls_ctx {
 
    # Convert various ssl_opts values to corresponding AnyEvent::TLS tls_ctx values.
    $tls_ctx{ verify          } = $ssl_opts{SSL_verify_mode};
-   $tls_ctx{ verify_peername } = 'http'                 if defined($ssl_opts{SSL_verifycn_scheme}) && $ssl_opts{SSL_verifycn_scheme} eq 'www';
-   $tls_ctx{ ca_file         } = $ssl_opts{SSL_ca_file} if exists($ssl_opts{SSL_ca_file});
-   $tls_ctx{ ca_path         } = $ssl_opts{SSL_ca_path} if exists($ssl_opts{SSL_ca_path});
+   $tls_ctx{ verify_peername } = 'http'                   if defined($ssl_opts{SSL_verifycn_scheme}) && $ssl_opts{SSL_verifycn_scheme} eq 'www';
+   $tls_ctx{ ca_file         } = $ssl_opts{SSL_ca_file}   if exists($ssl_opts{SSL_ca_file});
+   $tls_ctx{ ca_path         } = $ssl_opts{SSL_ca_path}   if exists($ssl_opts{SSL_ca_path});
+   $tls_ctx{ cert_file       } = $ssl_opts{SSL_cert_file} if exists($ssl_opts{SSL_cert_file});
+   $tls_ctx{ cert            } = $ssl_opts{SSL_cert}      if exists($ssl_opts{SSL_cert});
+   $tls_ctx{ key_file        } = $ssl_opts{SSL_key_file}  if exists($ssl_opts{SSL_key_file});
+   $tls_ctx{ key             } = $ssl_opts{SSL_key}       if exists($ssl_opts{SSL_key});
 
    if ($ssl_opts{verify_hostname}) {
       $tls_ctx{verify} ||= 1;
@@ -274,6 +278,41 @@ All LWP features and configuration options should still be
 available when using this module.
 
 
+=head1 SSL SUPPORT
+
+Only the following C<ssl_opts> are currently supported:
+
+=over 4
+
+=item * C<verify_hostname>
+
+=item * C<SSL_verify_mode>
+
+Only partially supported. Unspecified or VERIFY_NONE disables verification, anything else enables it.
+
+=item * C<SSL_verifycn_scheme>
+
+Only C<www> is supported. Any other value is ignored.
+
+=item * C<SSL_ca_file>
+
+=item * C<SSL_ca_path>
+
+=item * C<SSL_cert_file>
+
+=item * C<SSL_cert>
+
+=item * C<SSL_key_file>
+
+=item * C<SSL_key>
+
+=back
+
+As with L<LWP::Protocol::https>, if hostname verification is requested by L<LWP::UserAgent>'s C<ssl_opts>, and neither C<SSL_ca_file> nor C<SSL_ca_path> is set, then C<SSL_ca_file> is implied to be the one provided by L<Mozilla::CA>.
+
+The maintainer will be happy to add support for additional options.
+
+
 =head1 SEE ALSO
 
 =over 4
@@ -345,7 +384,7 @@ L<http://cpanratings.perl.org/d/LWP-Protocol-AnyEvent-http>
 
 =head1 AUTHORS
 
-Eric Brine, C<< <ikegami@adaelis.com> >>
+Eric Brine, C<< <ikegami@adaelis.com> >>, Maintainer
 
 Max Maischein, C<< <corion@cpan.org> >>
 
