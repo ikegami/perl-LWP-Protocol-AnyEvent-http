@@ -288,7 +288,7 @@ Only the following C<ssl_opts> are currently supported:
 
 =item * C<SSL_verify_mode>
 
-Only partially supported. Unspecified or VERIFY_NONE disables verification, anything else enables it.
+Only partially supported. Unspecified or C<VERIFY_NONE> disables verification, anything else enables it.
 
 =item * C<SSL_verifycn_scheme>
 
