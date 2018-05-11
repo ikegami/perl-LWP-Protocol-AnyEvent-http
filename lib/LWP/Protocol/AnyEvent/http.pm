@@ -341,7 +341,9 @@ in problems in some unrelated code. Doesn't support HTTPS. Supports FTP and NTTP
 
 =item * L<AnyEvent::HTTP::LWP::UserAgent>
 
-An alternative to this module. Doesn't help code that uses L<LWP::Simple> or L<LWP::UserAgent> directly.
+An alternative to this module that attempts to provide the same interface as
+L<LWP::UserAgent>, but falls short in many ways. Unlike L<AnyEvent::HTTP::LWP::UserAgent>,
+this module only replaces the back end of L<LWP::UserAgent>, offering a much more faithful experience.
 
 =back
 
