@@ -4,7 +4,7 @@ package LWP::Protocol::AnyEvent::http;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.12.0');
+use version; our $VERSION = qv('v1.13.0');
 
 use AnyEvent            qw( );
 use AnyEvent::HTTP      qw( );
@@ -212,7 +212,7 @@ LWP::Protocol::AnyEvent::http - Event loop friendly HTTP and HTTPS backend for L
 
 =head1 VERSION
 
-Version 1.12.0
+Version 1.13.0
 
 
 =head1 SYNOPSIS
