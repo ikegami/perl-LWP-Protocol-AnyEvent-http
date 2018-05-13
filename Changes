@@ -1,5 +1,8 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
+1.16.0  ~~~~-~~-~~
+        - ~~~
+
 1.14.0  2018-05-13
         - Support for socks 5/4a/4 proxies.
         - Honour SSL settings when requesting an HTTP URL via a HTTPS proxy.
