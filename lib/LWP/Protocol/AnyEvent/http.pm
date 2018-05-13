@@ -12,9 +12,15 @@ use HTTP::Response      qw( );
 use LWP::Protocol       qw( );
 use LWP::Protocol::http qw( );
 
+BEGIN {
+   local $^W = 0;  # AnyEvent::HTTP::Socks warns when used with -w
+   require AnyEvent::HTTP::Socks;
+}
+
+
 our @ISA = 'LWP::Protocol';
 
-LWP::Protocol::implementor($_, __PACKAGE__) for qw( http https );
+LWP::Protocol::implementor($_, __PACKAGE__) for qw( http https socks socks5 socks4a socks4 );
 
 
 # This code was based on _extra_sock_opts in LWP::Protocol::https
@@ -62,8 +68,7 @@ sub _set_response_headers {
 
    my %headers = %$headers;
 
-   $response->protocol( "HTTP/".delete($headers{ HTTPVersion }) )
-      if $headers{ HTTPVersion };
+   $response->protocol( "HTTP/".delete($headers{ HTTPVersion }) ) if $headers{ HTTPVersion };
    $response->code(             delete($headers{ Status      }) );
    $response->message(          delete($headers{ Reason      }) );
 
@@ -129,26 +134,24 @@ sub request {
    $opts{body}    = $$body   if defined($body);
    $opts{timeout} = $timeout if defined($timeout);
 
-   if ($url->scheme eq 'https') {
+   if (( $proxy || $url )->scheme eq 'https') {
       $opts{tls_ctx} = $self->_get_tls_ctx();
    }
 
-   my $http_request = \&AnyEvent::HTTP::http_request;
-   $opts{proxy} = undef;
-   if ($proxy) {
-      if ($proxy =~ /^socks/) {
-         require AnyEvent::HTTP::Socks;
-         $http_request = \&AnyEvent::HTTP::Socks::http_request;
-         $proxy =~ s{socks://}{socks5://}gi;
-         $opts{socks} = $proxy;
-      } else {
-         my $proxy_uri = URI->new($proxy);
-         $opts{proxy} = [ $proxy_uri->host, $proxy_uri->port, $proxy_uri->scheme ];
-      }
+   if (!$proxy) {
+      $opts{proxy} = undef;
+   }
+   elsif ($proxy =~ /^socks/) {
+      $proxy =~ s{socks://}{socks5://}gi;
+      $opts{proxy} = undef;
+      $opts{socks} = $proxy;
+   }
+   else {
+      $opts{proxy} = [ $proxy->host, $proxy->port, $proxy->scheme ];
    }
 
    # Let LWP handle redirects and cookies.
-   $http_request->(
+   AnyEvent::HTTP::Socks::http_request(
       $method => $url,
       headers => \%headers,
       %opts,
@@ -207,7 +210,7 @@ __END__
 
 =head1 NAME
 
-LWP::Protocol::AnyEvent::http - Event loop friendly HTTP and HTTPS backend for LWP
+LWP::Protocol::AnyEvent::http - Event loop friendly HTTP/HTTPS/SOCKS backend for LWP
 
 
 =head1 VERSION
@@ -234,7 +237,7 @@ Version 1.13.0
             process( $ua->get($url) );
         };
     }
-    
+
 
 
     # Using a worker pool model to fetch web pages in parallel.
@@ -275,7 +278,7 @@ to process requests. This makes it unfriendly to event-driven
 systems and cooperative multitasking system such as L<Coro>.
 
 This module makes LWP more friendly to these systems
-by plugging in an HTTP and HTTPS protocol implementor
+by plugging in an HTTP, HTTPS and SOCKS protocol implementor
 powered by L<AnyEvent> and L<AnyEvent::HTTP>.
 
 In short, it allows AnyEvent callbacks and Coro threads
@@ -285,6 +288,27 @@ so I can add tests and add a mention.)
 
 All LWP features and configuration options should still be
 available when using this module.
+
+
+=head1 SUPPORTED PROTOCOLS
+
+The following protocols are supported:
+
+=over 4
+
+=item * C<https>: request and proxy
+
+=item * C<http>: request and proxy
+
+=item * C<socks>: alias for C<socks5>
+
+=item * C<socks5>: proxy only
+
+=item * C<socks4a>: proxy only
+
+=item * C<socks4>: proxy only
+
+=back
 
 
 =head1 SSL SUPPORT
@@ -322,27 +346,6 @@ As with L<LWP::Protocol::https>, if hostname verification is requested by L<LWP:
 The maintainer will be happy to add support for additional options.
 
 
-=head1 PROXY SUPPORT
-
-The following proxy types are supported:
-
-=over 4
-
-=item * C<https>
-
-=item * C<http>
-
-=item * C<socks> (alias for C<socks5>)
-
-=item * C<socks5> (requires L<AnyEvent::HTTP::Socks>)
-
-=item * C<socks4a> (requires L<AnyEvent::HTTP::Socks>)
-
-=item * C<socks4> (requires L<AnyEvent::HTTP::Socks>)
-
-=back
-
-
 =head1 SEE ALSO
 
 =over 4
@@ -356,7 +359,7 @@ These two modules are developed in parallel.
 
 An excellent cooperative multitasking library assisted by this module.
 
-=item * L<AnyEvent>, L<AnyEvent::HTTP>
+=item * L<AnyEvent>, L<AnyEvent::HTTP>, L<AnyEvent::HTTP::Socks>
 
 Powers this module.
 
