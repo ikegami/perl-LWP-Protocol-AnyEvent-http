@@ -35,6 +35,7 @@ This module requires these other modules and libraries:
     Test::More       (For testing only)
     AnyEvent
     AnyEvent::HTTP
+    AnyEvent::HTTP::Socks  (Optional. Provides support for socks proxies.)
     HTTP::Response
     LWP::Protocol
     version

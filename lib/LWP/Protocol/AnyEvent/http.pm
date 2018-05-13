@@ -7,7 +7,7 @@ use warnings;
 use version; our $VERSION = qv('v1.11.0');
 
 use AnyEvent            qw( );
-use AnyEvent::HTTP      qw( http_request );
+use AnyEvent::HTTP      qw( );
 use HTTP::Response      qw( );
 use LWP::Protocol       qw( );
 use LWP::Protocol::http qw( );
@@ -133,13 +133,22 @@ sub request {
       $opts{tls_ctx} = $self->_get_tls_ctx();
    }
 
+   my $http_request = \&AnyEvent::HTTP::http_request;
+   $opts{proxy} = undef;
    if ($proxy) {
-      my $proxy_uri = URI->new($proxy);
-      $opts{proxy} = [ $proxy_uri->host, $proxy_uri->port, $proxy_uri->scheme ];
+      if ($proxy =~ /^socks/) {
+         require AnyEvent::HTTP::Socks;
+         $http_request = \&AnyEvent::HTTP::Socks::http_request;
+         $proxy =~ s{socks://}{socks5://}gi;
+         $opts{socks} = $proxy;
+      } else {
+         my $proxy_uri = URI->new($proxy);
+         $opts{proxy} = [ $proxy_uri->host, $proxy_uri->port, $proxy_uri->scheme ];
+      }
    }
 
    # Let LWP handle redirects and cookies.
-   http_request(
+   $http_request->(
       $method => $url,
       headers => \%headers,
       %opts,
@@ -311,6 +320,27 @@ Only C<www> is supported. Any other value is ignored.
 As with L<LWP::Protocol::https>, if hostname verification is requested by L<LWP::UserAgent>'s C<ssl_opts>, and neither C<SSL_ca_file> nor C<SSL_ca_path> is set, then C<SSL_ca_file> is implied to be the one provided by L<Mozilla::CA>.
 
 The maintainer will be happy to add support for additional options.
+
+
+=head1 PROXY SUPPORT
+
+The following proxy types are supported:
+
+=over 4
+
+=item * C<https>
+
+=item * C<http>
+
+=item * C<socks> (alias for C<socks5>)
+
+=item * C<socks5> (requires L<AnyEvent::HTTP::Socks>)
+
+=item * C<socks4a> (requires L<AnyEvent::HTTP::Socks>)
+
+=item * C<socks4> (requires L<AnyEvent::HTTP::Socks>)
+
+=back
 
 
 =head1 SEE ALSO
