@@ -1,8 +1,7 @@
 Revision history for LWP-Protocol-AnyEvent-http
 
-1.12.0  ~~~~-~~-~~
+1.12.0  2018-05-12
         - Added support for socks 5/4a/4 proxies.
-        - ~~~
 
 1.10.0  2018-02-19
         - Added support for SSL_cert_file, SSL_cert, SSL_key_file and SSL_key.
